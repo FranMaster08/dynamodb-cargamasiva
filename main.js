@@ -118,13 +118,13 @@ const listTableFromDynamo = async () => {
   }
 };
 
-//insertDataOnDynamoDB(jsonData);
+insertDataOnDynamoDB(jsonData);
 //deleteItemsWithCuit(jsonData);`
 // searchAndSaveOnNewJson(jsonData, listDatabase);
 //excelToJson(dataExcel);
-listTableFromDynamo()
-  .then((data) => {
-    console.log(JSON.stringify(data));
-  })
-  .catch(console.error);
+//listTableFromDynamo()
+  // .then((data) => {
+  //   console.log(JSON.stringify(data));
+  // })
+  // .catch(console.error);
 //#endregion
