@@ -1,6 +1,7 @@
 import AWS from "aws-sdk";
 import * as XLSX from "xlsx";
 import { readFileSync, writeFileSync, readFile } from "node:fs";
+import { log } from "node:console";
 
 AWS.config.update({ region: "us-east-1" });
 
@@ -11,6 +12,9 @@ const jsonData = JSON.parse(readFileSync("prod.json", "utf8"));
 const listDatabase = JSON.parse(readFileSync("prueba2.json", "utf8"));
 const dataExcel = "cuits.xlsx";
 
+const analizeArrayPromise = (result, status) =>
+  result.filter((item) => item.status === status).map((item) => item.value);
+
 //#region insertar masivamente
 const insertDataOnDynamoDB = async (listCuit) => {
   const itemsToInsert = listCuit.map((item) => {
@@ -18,19 +22,15 @@ const insertDataOnDynamoDB = async (listCuit) => {
       TableName: tableName,
       Item: item,
     };
-
     return dynamodb.putItem(params).promise();
   });
-  try {
-    const result = await Promise.all(itemsToInsert);
-    if (error) {
-      console.error("Error al insertar un elemento:", error);
-    } else {
-      console.log("Elemento insertado con éxito:", result);
-    }
-  } catch (error) {
-    throw error;
-  }
+
+  const result = await Promise.allSettled(itemsToInsert);
+  const okresult = analizeArrayPromise(result, "fulfilled");
+  const fails = analizeArrayPromise(result, "rejected");
+
+  console.log("Elemento insertado con éxito los siguientes datos:", okresult);
+  console.log("Fallo el insertado  siguientes datos:", fails);
 };
 //#endregion
 
@@ -79,7 +79,9 @@ const excelToJson = (excel) => {
       return;
     }
     const xlsxtojson = XLSX.read(data, { type: "buffer" });
-    const dataExceltToJson = XLSX.utils.sheet_to_json(xlsxtojson.Sheets[xlsxtojson.SheetNames[0]]);
+    const dataExceltToJson = XLSX.utils.sheet_to_json(
+      xlsxtojson.Sheets[xlsxtojson.SheetNames[0]]
+    );
 
     const jsonResult = dataExceltToJson
       .map((item) => {
@@ -104,9 +106,25 @@ const excelToJson = (excel) => {
 
 //#region  llamado a funciones
 
-//insertDataOnDynamoDB(jsonData);
-//deleteItemsWithCuit(jsonData);
-searchAndSaveOnNewJson(jsonData, listDatabase);
-//excelToJson(dataExcel);
-//#endregion
+const listTableFromDynamo = async () => {
+  try {
+    const params = {
+      TableName: tableName,
+    };
+    const data = await dynamodb.scan(params).promise();
+    return data;
+  } catch (error) {
+    throw error;
+  }
+};
 
+//insertDataOnDynamoDB(jsonData);
+//deleteItemsWithCuit(jsonData);`
+// searchAndSaveOnNewJson(jsonData, listDatabase);
+//excelToJson(dataExcel);
+listTableFromDynamo()
+  .then((data) => {
+    console.log(JSON.stringify(data));
+  })
+  .catch(console.error);
+//#endregion
