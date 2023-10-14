@@ -1,3 +1,8 @@
 node_modules/
-*.json
+*lock.json
 *.xlsx
+prod*
+prueba*
+query*
+resultado*
+data*
