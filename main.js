@@ -29,8 +29,15 @@ const insertDataOnDynamoDB = async (listCuit) => {
   const okresult = analizeArrayPromise(result, "fulfilled");
   const fails = analizeArrayPromise(result, "rejected");
 
-  console.log("Elemento insertado con éxito los siguientes datos:", okresult);
-  console.log("Fallo el insertado  siguientes datos:", fails);
+  if (okresult.length > 0) {
+    console.log("Elemento insertado con éxito los siguientes datos:");
+    okresult.forEach(console.log);
+  }
+
+  if (failures.length > 0) {
+    console.log("Fallo el insertado  siguientes datos:", fails);
+    okresult.forEach(console.log);
+  }
 };
 //#endregion
 
